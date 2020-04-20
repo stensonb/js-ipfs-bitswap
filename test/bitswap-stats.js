@@ -171,7 +171,8 @@ describe('bitswap stats', () => {
       bs2 = bitswaps[1]
       bs2.start()
 
-      await libp2pNodes[0].dial(libp2pNodes[1].peerInfo)
+      libp2pNodes[0].peerStore.addressBook.set(libp2pNodes[1].peerId, libp2pNodes[1].multiaddrs)
+      await libp2pNodes[0].dial(libp2pNodes[1].peerId)
 
       block = await makeBlock()
 
@@ -214,7 +215,7 @@ describe('bitswap stats', () => {
     })
 
     it('has peer stats', async () => {
-      const peerStats = bs2.stat().forPeer(libp2pNodes[0].peerInfo.id)
+      const peerStats = bs2.stat().forPeer(libp2pNodes[0].peerId)
       expect(peerStats).to.exist()
 
       const stats = await pEvent(peerStats, 'update')

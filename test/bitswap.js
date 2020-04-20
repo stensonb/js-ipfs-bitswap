@@ -37,9 +37,12 @@ describe('bitswap without DHT', function () {
     ])
 
     // connect 0 -> 1 && 1 -> 2
+    nodes[0].libp2pNode.peerStore.addressBook.set(nodes[1].libp2pNode.peerId, nodes[1].libp2pNode.multiaddrs)
+    nodes[1].libp2pNode.peerStore.addressBook.set(nodes[2].libp2pNode.peerId, nodes[2].libp2pNode.multiaddrs)
+
     await Promise.all([
-      nodes[0].libp2pNode.dial(nodes[1].libp2pNode.peerInfo),
-      nodes[1].libp2pNode.dial(nodes[2].libp2pNode.peerInfo)
+      nodes[0].libp2pNode.dial(nodes[1].libp2pNode.peerId),
+      nodes[1].libp2pNode.dial(nodes[2].libp2pNode.peerId)
     ])
   })
 
@@ -85,9 +88,12 @@ describe('bitswap with DHT', function () {
     ])
 
     // connect 0 -> 1 && 1 -> 2
+    nodes[0].libp2pNode.peerStore.addressBook.set(nodes[1].libp2pNode.peerId, nodes[1].libp2pNode.multiaddrs)
+    nodes[1].libp2pNode.peerStore.addressBook.set(nodes[2].libp2pNode.peerId, nodes[2].libp2pNode.multiaddrs)
+
     await Promise.all([
-      nodes[0].libp2pNode.dial(nodes[1].libp2pNode.peerInfo),
-      nodes[1].libp2pNode.dial(nodes[2].libp2pNode.peerInfo)
+      nodes[0].libp2pNode.dial(nodes[1].libp2pNode.peerId),
+      nodes[1].libp2pNode.dial(nodes[2].libp2pNode.peerId)
     ])
   })
 
@@ -101,7 +107,6 @@ describe('bitswap with DHT', function () {
 
   it('put a block in 2, get it in 0', async () => {
     const block = await makeBlock()
-    nodes[2].bitswap.put(block)
 
     await nodes[2].bitswap.put(block)
 

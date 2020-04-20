@@ -78,7 +78,7 @@ describe('network', () => {
 
   it('connectTo fail', async () => {
     try {
-      await networkA.connectTo(p2pB.peerInfo.id)
+      await networkA.connectTo(p2pB.peerId)
       chai.assert.fail()
     } catch (err) {
       expect(err).to.exist()
@@ -89,16 +89,17 @@ describe('network', () => {
     var counter = 0
 
     bitswapMockA._onPeerConnected = (peerId) => {
-      expect(peerId.toB58String()).to.equal(p2pB.peerInfo.id.toB58String())
+      expect(peerId.toB58String()).to.equal(p2pB.peerId.toB58String())
       counter++
     }
 
     bitswapMockB._onPeerConnected = (peerId) => {
-      expect(peerId.toB58String()).to.equal(p2pA.peerInfo.id.toB58String())
+      expect(peerId.toB58String()).to.equal(p2pA.peerId.toB58String())
       counter++
     }
 
-    await p2pA.dial(p2pB.peerInfo)
+    p2pA.peerStore.addressBook.set(p2pB.peerId, p2pB.multiaddrs)
+    await p2pA.dial(p2pB.peerId)
 
     await pWaitFor(() => counter >= 2)
     bitswapMockA._onPeerConnected = () => {}
@@ -106,7 +107,8 @@ describe('network', () => {
   })
 
   it('connectTo success', async () => {
-    await networkA.connectTo(p2pB.peerInfo)
+    p2pA.peerStore.addressBook.set(p2pB.peerId, p2pB.multiaddrs)
+    await networkA.connectTo(p2pB.peerId)
   })
 
   const versions = [{
@@ -136,7 +138,8 @@ describe('network', () => {
 
       bitswapMockB._receiveError = (err) => deferred.reject(err)
 
-      const { stream } = await p2pA.dialProtocol(p2pB.peerInfo, '/ipfs/bitswap/' + version.num)
+      // TODO: set addr
+      const { stream } = await p2pA.dialProtocol(p2pB.peerId, '/ipfs/bitswap/' + version.num)
       await pipe(
         [version.serialize(msg)],
         lp.encode(),
@@ -167,11 +170,12 @@ describe('network', () => {
 
     bitswapMockB._receiveError = deferred.reject
 
-    await networkA.sendMessage(p2pB.peerInfo.id, msg)
+    await networkA.sendMessage(p2pB.peerId, msg)
   })
 
   it('dial to peer on Bitswap 1.0.0', async () => {
-    const { protocol } = await p2pA.dialProtocol(p2pC.peerInfo, ['/ipfs/bitswap/1.1.0', '/ipfs/bitswap/1.0.0'])
+    p2pA.peerStore.addressBook.set(p2pC.peerId, p2pC.multiaddrs)
+    const { protocol } = await p2pA.dialProtocol(p2pC.peerId, ['/ipfs/bitswap/1.1.0', '/ipfs/bitswap/1.0.0'])
 
     expect(protocol).to.equal('/ipfs/bitswap/1.0.0')
   })
@@ -196,7 +200,7 @@ describe('network', () => {
 
     bitswapMockC._receiveError = deferred.reject
 
-    await networkA.sendMessage(p2pC.peerInfo.id, msg)
+    await networkA.sendMessage(p2pC.peerId, msg)
     await deferred.promise
   })
 })
